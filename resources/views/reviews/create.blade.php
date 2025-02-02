@@ -19,16 +19,6 @@
                 </div>
 
                 <div>
-                    <label for="user_id" class="block text-gray-700 font-medium mb-2">User</label>
-                    <select name="user_id" id="user_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
                     <label for="business_id" class="block text-gray-700 font-medium mb-2">Business</label>
                     <select name="business_id" id="business_id" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">

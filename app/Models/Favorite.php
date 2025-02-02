@@ -9,7 +9,7 @@ class Favorite extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'business_id', 'metadata_id'];
+    protected $fillable = ['user_id', 'business_id'];
 
     /**
      * Get the user associated with the favorite.
@@ -27,11 +27,6 @@ class Favorite extends Model
         return $this->belongsTo(Business::class);
     }
 
-    /**
-     * Get the metadata associated with the favorite.
-     */
-    public function metadata()
-    {
-        return $this->belongsTo(Metadata::class);
-    }
+
+
 }

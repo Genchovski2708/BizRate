@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->tinyInteger('rating')->unsigned(); // Rating from 1-5
             $table->text('comment');
-            $table->foreignId('metadata_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

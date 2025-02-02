@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('contact');
             $table->string('photo')->nullable();
             $table->float('average_rating')->default(0);
-            $table->foreignId('metadata_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

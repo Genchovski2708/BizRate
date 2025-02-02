@@ -8,12 +8,8 @@ class Review extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'business_id', 'rating', 'comment', 'metadata_id'];
+    protected $fillable = ['user_id', 'business_id', 'rating', 'comment'];
 
-    public function metadata()
-    {
-        return $this->belongsTo(Metadata::class);
-    }
 
     public function user()
     {
@@ -23,5 +19,21 @@ class Review extends Model
     public function business()
     {
         return $this->belongsTo(Business::class);
+    }
+    public static function boot()
+    {
+        parent::boot();
+
+        static::saved(function ($review) {
+            $business = $review->business;
+            $business->average_rating = $business->reviews()->avg('rating');
+            $business->save();
+        });
+
+        static::deleted(function ($review) {
+            $business = $review->business;
+            $business->average_rating = $business->reviews()->avg('rating') ?? 0;
+            $business->save();
+        });
     }
 }

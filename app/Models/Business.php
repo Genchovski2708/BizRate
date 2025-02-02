@@ -9,11 +9,11 @@ class Business extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'address', 'contact', 'photo', 'average_rating', 'metadata_id'];
+    protected $fillable = ['name', 'description', 'address', 'contact', 'photo', 'average_rating', 'user_id'];
 
-    public function metadata()
+    public function user()
     {
-        return $this->belongsTo(Metadata::class);
+        return $this->belongsTo(User::class);
     }
 
     public function reviews()
@@ -30,4 +30,7 @@ class Business extends Model
     {
         return $this->belongsToMany(User::class, 'favorites');
     }
+
 }
+
+

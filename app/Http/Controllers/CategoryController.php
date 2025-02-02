@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Metadata;
+
 use Carbon\Carbon;
 class CategoryController extends Controller
 {
@@ -41,16 +41,11 @@ class CategoryController extends Controller
             $userId = 1;  // Or any default user_id you may have for testing purposes
         }
 
-        // Create a new metadata record with current timestamps
-        $metadata = Metadata::create([
-            'created_at' => Carbon::now(), // Set current datetime for created_at
-            'updated_at' => Carbon::now(), // Set current datetime for updated_at
-        ]);
+
 
         // Create the new category, assigning the metadata_id and user_id
         Category::create([
             'name' => $request->name,
-            'metadata_id' => $metadata->id,  // Use the created metadata's ID
             'user_id' => $userId, // Use the test user's ID as the creator
         ]);
 

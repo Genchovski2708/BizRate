@@ -8,12 +8,8 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'metadata_id', 'user_id'];
+    protected $fillable = ['name', 'user_id'];
 
-    public function metadata()
-    {
-        return $this->belongsTo(Metadata::class);
-    }
 
     public function user()
     {

@@ -4,13 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use App\Models\Category;
-use App\Models\Metadata;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class BusinessController extends Controller
 {
+    use AuthorizesRequests;
+
     // Display a listing of the resource.
+
+    // Welcome page to display all businesses with their average ratings
+    public function welcome()
+    {
+        // Fetch all businesses with their reviews and calculate average ratings
+        $businesses = Business::with('reviews')->get()->map(function ($business) {
+            $business->average_rating = $business->reviews->avg('rating');
+            return $business;
+        });
+
+        return view('welcome', compact('businesses'));
+    }
+
     public function index()
     {
         $businesses = Business::all();
@@ -25,75 +41,120 @@ class BusinessController extends Controller
     }
 
     // Store a newly created resource in storage.
+
+
     public function store(Request $request)
     {
+        // Validate input
         $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'address' => 'required|string',
             'contact' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
+            'categories' => 'required|array',
+            'categories.*' => 'exists:categories,id',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Create metadata for this business
-        $metadata = Metadata::create([
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
+        $user = Auth::user();
 
-        // Create the business entry
-        Business::create([
+        // Handle file upload
+        $photoPath = $request->hasFile('photo') ?
+            $request->file('photo')->store('businesses', 'public') : null;
+
+        // Create the business with user_id
+        $business = Business::create([
             'name' => $request->name,
             'description' => $request->description,
             'address' => $request->address,
             'contact' => $request->contact,
-            'category_id' => $request->category_id,
-            'metadata_id' => $metadata->id, // Link the metadata ID
+            'photo' => $photoPath,
+            'user_id' => $user->id, // Associate business with the logged-in user
         ]);
 
-        return redirect()->route('businesses.index');
+        // Attach categories
+        $business->categories()->attach($request->categories);
+
+        return redirect('/')->with('success', 'Business created successfully.');
     }
+
 
     // Display the specified resource.
     public function show(Business $business)
     {
+        $business->load('reviews.user'); // Load reviews with their associated users
+        $business->average_rating = $business->reviews->avg('rating');
         return view('businesses.show', compact('business'));
     }
 
     // Show the form for editing the specified resource.
     public function edit(Business $business)
     {
-        $categories = Category::all(); // Fetch all categories for the dropdown
+        $this->authorize('update', $business); // Ensure only authorized users can edit
+        $categories = Category::all();
         return view('businesses.edit', compact('business', 'categories'));
     }
 
     // Update the specified resource in storage.
     public function update(Request $request, Business $business)
     {
+        // Ensure only the owner or an admin can update
+        $this->authorize('update', $business);
+
+        // Validate input
         $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'address' => 'required|string',
             'contact' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
+            'categories' => 'required|array',
+            'categories.*' => 'exists:categories,id',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Update the business entry
-        $business->update($request->all());
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Store new photo
+            $photoPath = $request->file('photo')->store('businesses', 'public');
 
-        // Update the associated metadata timestamp
-        $business->metadata->update(['updated_at' => Carbon::now()]);
+            // Delete old photo if it exists
+            if ($business->photo) {
+                Storage::disk('public')->delete($business->photo);
+            }
 
-        return redirect()->route('businesses.index');
+            // Save new photo path
+            $business->photo = $photoPath;
+        }
+
+        // Update business details
+        $business->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'address' => $request->address,
+            'contact' => $request->contact,
+            'photo' => $business->photo, // Ensure this gets updated
+        ]);
+
+        // Sync categories
+        $business->categories()->sync($request->categories);
+
+        return redirect()->route('businesses.show', $business)->with('success', 'Business updated successfully!');
     }
+
+
 
     // Remove the specified resource from storage.
     public function destroy(Business $business)
     {
-        // Delete the associated metadata entry
-        $business->metadata->delete();
+
         $business->delete();
 
         return redirect()->route('businesses.index');
+    }
+    public function userBusinesses()
+    {
+        // Fetch only businesses owned by the user (HasMany relationship)
+        $businesses = auth()->user()->businesses()->paginate(10);
+        return view('businesses.user-index', compact('businesses'));
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Metadata;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -34,16 +33,14 @@ class UserController extends Controller
         // Hash the password before storing it
         $validatedData['password'] = bcrypt($validatedData['password']);  // bcrypt encryption
 
-        // Create the metadata first, then user
-        $metadata = Metadata::create();
+
 
         // Store the user
         $user = User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => $validatedData['password'],  // already hashed
-            'role' => $validatedData['role'],
-            'metadata_id' => $metadata->id,
+            'role' => $validatedData['role']
         ]);
 
         return redirect()->route('users.index')->with('success', 'User created successfully');
@@ -91,10 +88,6 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        // Delete associated metadata
-        if ($user->metadata) {
-            $user->metadata->delete();
-        }
 
         $user->delete();
 

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('metadata_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

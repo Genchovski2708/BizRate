@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Review;
-use App\Models\User;
 use App\Models\Business;
-use App\Models\Metadata;
-use Carbon\Carbon;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Import the Auth facade
 
 class ReviewController extends Controller
 {
+    use AuthorizesRequests;
     // Display a listing of the resource.
     public function index()
     {
@@ -22,9 +22,7 @@ class ReviewController extends Controller
     public function create()
     {
         $businesses = Business::all(); // Get all businesses
-        $users = User::all(); // Fetch all users to populate the dropdown
-
-        return view('reviews.create', compact('businesses', 'users'));
+        return view('reviews.create', compact('businesses'));
     }
 
     // Store a newly created resource in storage.
@@ -37,33 +35,55 @@ class ReviewController extends Controller
             'business_id' => 'required|exists:businesses,id',
         ]);
 
-        // Get the first test user
-        $testUser = User::first();
+        $user = Auth::user();
+        $businessId = $request->business_id;
 
-        // Check if a user is found, or set a default
-        if ($testUser) {
-            $userId = $testUser->id;
+        // Check if the user has already reviewed this business
+        $review = Review::where('user_id', $user->id)
+            ->where('business_id', $businessId)
+            ->first();
+
+        if ($review) {
+            // Update existing review
+            $review->update([
+                'rating' => $request->rating,
+                'comment' => $request->comment,
+            ]);
         } else {
-            $userId = 1; // Default to a fallback user_id for testing purposes
+            // Create a new review
+            Review::create([
+                'rating' => $request->rating,
+                'comment' => $request->comment,
+                'user_id' => $user->id,
+                'business_id' => $businessId,
+            ]);
         }
 
-        // Create a new metadata record with current timestamps
-        $metadata = Metadata::create([
-            'created_at' => Carbon::now(), // Current datetime for created_at
-            'updated_at' => Carbon::now(), // Current datetime for updated_at
-        ]);
+        // Recalculate the business's average rating
+        $this->updateBusinessRating($businessId);
 
-        // Create the new review with the required fields, including metadata_id and user_id
-        Review::create([
-            'rating' => $request->rating,
-            'comment' => $request->comment,
-            'user_id' => $userId, // Assign the test user's ID
-            'business_id' => $request->business_id,
-            'metadata_id' => $metadata->id, // Use the created metadata's ID
-        ]);
-
-        return redirect()->route('reviews.index');
+        return back()->with('success', 'Review created successfully.');
     }
+
+    // Helper method to update the business rating
+    private function updateBusinessRating($businessId)
+    {
+        $business = Business::find($businessId);
+
+        if ($business) {
+            // Check if there are any reviews left
+            $averageRating = Review::where('business_id', $businessId)->avg('rating');
+
+            // If no reviews are left, set a default value (e.g., 0)
+            if ($averageRating === null) {
+                $averageRating = 0;
+            }
+
+            $business->update(['average_rating' => $averageRating]);
+        }
+    }
+
+
 
     // Display the specified resource.
     public function show(Review $review)
@@ -81,20 +101,38 @@ class ReviewController extends Controller
     // Update the specified resource in storage.
     public function update(Request $request, Review $review)
     {
-        // Validate the request input fields
+        // Ensure user can update the review
+        $this->authorize('update', $review);  // This will call the ReviewPolicy's update method
+
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string',
         ]);
 
-        $review->update($request->all());
-        return redirect()->route('reviews.index');
+        $review->update([
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+        ]);
+
+        // Recalculate business rating
+        $this->updateBusinessRating($review->business_id);
+
+        return back()->with('success', 'Review updated successfully.');
     }
+
 
     // Remove the specified resource from storage.
     public function destroy(Review $review)
     {
+        // Ensure user can delete the review
+        $this->authorize('delete', $review);  // This will call the ReviewPolicy's delete method
+
+        $businessId = $review->business_id;
         $review->delete();
-        return redirect()->route('reviews.index');
+
+        // Recalculate business rating
+        $this->updateBusinessRating($businessId);
+
+        return back()->with('success', 'Review deleted successfully.');
     }
 }
