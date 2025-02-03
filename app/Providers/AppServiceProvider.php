@@ -14,6 +14,7 @@ class AppServiceProvider extends ServiceProvider
     protected $policies = [
         Business::class => BusinessPolicy::class,
         Review::class => ReviewPolicy::class,
+        Comment::class => CommentPolicy::class,
     ];
 
     /**

@@ -42,4 +42,9 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';  // Adjust this based on how you store the user's role
     }
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
 }

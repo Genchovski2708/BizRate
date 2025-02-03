@@ -70,7 +70,14 @@ class WelcomeController extends Controller
 
     public function show(Business $business)
     {
-        $business->load(['reviews.user', 'categories']);
-        return view('businesses.show', compact('business'));
+        // Load the business with reviews, user information, and categories
+        $business->load(['reviews.user', 'categories', 'comments.user', 'comments.replies.user']);
+
+        // Fetch reviews and comments separately if needed for easy access in the view
+        $reviews = $business->reviews;
+        $comments = $business->comments;
+
+        return view('businesses.show', compact('business', 'reviews', 'comments'));
     }
+
 }

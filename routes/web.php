@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
@@ -32,10 +33,27 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('reviews', ReviewController::class);
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+
+
+
+    Route::get('/comments/{comment}', [CommentController::class, 'show'])->name('comments.show');
+    Route::post('/businesses/{business}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::post('/businesses/{business}/comments/json', [CommentController::class, 'storeJson'])->name('comments.storeJson');
+    Route::get('/comments/{comment}/edit', [CommentController::class, 'edit'])->name('comments.edit');
+    Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+    Route::put('/comments/{comment}/json', [CommentController::class, 'updateJson'])->name('comments.updateJson');
+    Route::delete('/comments/{comment}/json', [CommentController::class, 'destroyJson'])->name('comments.destroyJson');
+
 });
 
 // Admin-only routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/comments', [CommentController::class, 'index'])->name('comments.index');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('users', UserController::class);
     Route::resource('categories', CategoryController::class);

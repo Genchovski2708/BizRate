@@ -9,7 +9,7 @@
 
                 <!-- Admin Actions -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Create Category Button -->
+                    <!-- Manage Categories -->
                     <div class="bg-blue-500 hover:bg-blue-700 text-white text-center rounded-lg shadow-lg p-6 transition-all">
                         <a href="{{ route('categories.index') }}" class="block text-xl font-semibold">
                             Manage Categories
@@ -17,14 +17,15 @@
                         <p class="mt-2 text-sm">Add new categories for businesses.</p>
                     </div>
 
-                    <!-- Examine Reviews Button -->
+                    <!-- Examine Reviews -->
                     <div class="bg-green-500 hover:bg-green-700 text-white text-center rounded-lg shadow-lg p-6 transition-all">
                         <a href="{{ route('reviews.index') }}" class="block text-xl font-semibold">
                             Examine Reviews
                         </a>
                         <p class="mt-2 text-sm">Manage and moderate reviews from users.</p>
                     </div>
-                    <!-- Examine Reviews Button -->
+
+                    <!-- Manage Users -->
                     <div class="bg-yellow-500 hover:bg-yellow-700 text-white text-center rounded-lg shadow-lg p-6 transition-all">
                         <a href="{{ route('users.index') }}" class="block text-xl font-semibold">
                             Manage Users
@@ -32,8 +33,13 @@
                         <p class="mt-2 text-sm">Manage and moderate users.</p>
                     </div>
 
-                    <!-- More options can be added later -->
-                    <!-- Example: Manage Users, View Reports, etc. -->
+                    <!-- Manage Comments -->
+                    <div class="bg-purple-500 hover:bg-purple-700 text-white text-center rounded-lg shadow-lg p-6 transition-all">
+                        <a href="{{ route('comments.index') }}" class="block text-xl font-semibold">
+                            Manage Comments
+                        </a>
+                        <p class="mt-2 text-sm">Moderate and delete user comments.</p>
+                    </div>
                 </div>
             </div>
         </div>
