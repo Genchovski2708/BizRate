@@ -553,6 +553,7 @@
                 }
 
                 const data = await response.json();
+                console.log('Response data:', data); // Debugging
 
                 if (data.success) {
                     // Clear the form
@@ -561,8 +562,7 @@
                     // Optional: Show a success message
                     showNotification('Comment posted successfully', 'success');
 
-                    // Optional: Dynamically insert the new comment into the DOM
-                    // You can create a function to append the new comment to the list
+                    // Append the new comment to the DOM
                     appendComment(data.comment);
                 }
             } catch (error) {
@@ -612,13 +612,23 @@
             }
         }
         // Append a new comment to the list
+        // Append a new comment to the list
+        // Append a new comment to the list
         function appendComment(comment) {
-            const commentList = document.querySelector('.space-y-6');
+            // Target the container where comments are listed
+            const commentList = document.querySelector('#commentsContent .space-y-6');
 
+            if (!commentList) {
+                console.error('Comment list container not found!');
+                return;
+            }
+
+            // Create the new comment element
             const commentDiv = document.createElement('div');
             commentDiv.className = 'border-b pb-6';
             commentDiv.id = `comment-${comment.id}`;
 
+            // Generate the HTML for the new comment
             commentDiv.innerHTML = `
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-3">
@@ -634,11 +644,24 @@
         <div class="text-gray-700 comment-content" id="content-${comment.id}">
             ${comment.content}
         </div>
+ <div class="mt-4 flex gap-3">
+                                                    <button type="button"
+                                                            class="text-blue-500 hover:text-blue-600 transition duration-200"
+                                                            onclick="editComment({{ $comment->id }})">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+
+                                                    <button type="button"
+                                                            class="text-red-500 hover:text-red-600 transition duration-200"
+                                                            onclick="deleteComment({{ $comment->id }})">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
     `;
 
-            commentList.appendChild(commentDiv);
+            // Append the new comment to the top of the list
+            commentList.prepend(commentDiv); // Use `prepend` to add the comment at the top
         }
-
 
         // Append a new reply to the list
         function appendReply(reply, parentId) {
