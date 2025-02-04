@@ -120,6 +120,30 @@ class ReviewController extends Controller
         return back()->with('success', 'Review updated successfully.');
     }
 
+    public function updateJson(Request $request, Review $review)
+    {
+        // Ensure user can update the review
+        $this->authorize('update', $review);
+
+        // Validate the request
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string',
+        ]);
+
+        // Update the review
+        $review->update($validated);
+
+        // Recalculate business rating
+        $this->updateBusinessRating($review->business_id);
+
+        // Return a JSON response
+        return response()->json([
+            'success' => true,
+            'rating' => $review->rating,
+            'comment' => $review->comment,
+        ]);
+    }
 
     // Remove the specified resource from storage.
     public function destroy(Review $review)
@@ -135,4 +159,10 @@ class ReviewController extends Controller
 
         return back()->with('success', 'Review deleted successfully.');
     }
+    public function myReviews()
+    {
+        $reviews = auth()->user()->reviews()->with('business')->paginate(10);
+        return view('reviews.my-reviews', compact('reviews'));
+    }
+
 }

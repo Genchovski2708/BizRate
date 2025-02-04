@@ -45,15 +45,25 @@ class BusinessController extends Controller
 
     public function store(Request $request)
     {
-        // Validate input
+        // Validate input with better error messages
         $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'address' => 'required|string',
-            'contact' => 'nullable|string',
-            'categories' => 'required|array',
+            'description' => 'required|string', // Now required
+            'address' => 'required|string|max:255',
+            'contact' => 'required|string|max:255', // Now required
+            'categories' => 'required|array|min:1', // At least one category required
             'categories.*' => 'exists:categories,id',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
+        ], [
+            'name.required' => 'Business name is required.',
+            'description.required' => 'Description is required.',
+            'address.required' => 'Address is required.',
+            'contact.required' => 'Contact information is required.',
+            'categories.required' => 'Please select at least one category.',
+            'categories.*.exists' => 'Invalid category selection.',
+            'photo.image' => 'The uploaded file must be an image.',
+            'photo.mimes' => 'Allowed image formats: jpeg, png, jpg, gif.',
+            'photo.max' => 'Image size must not exceed 4MB.',
         ]);
 
         $user = Auth::user();
@@ -69,7 +79,7 @@ class BusinessController extends Controller
             'address' => $request->address,
             'contact' => $request->contact,
             'photo' => $photoPath,
-            'user_id' => $user->id, // Associate business with the logged-in user
+            'user_id' => $user->id,
         ]);
 
         // Attach categories
@@ -77,6 +87,7 @@ class BusinessController extends Controller
 
         return redirect('/')->with('success', 'Business created successfully.');
     }
+
 
 
     // Display the specified resource.
@@ -101,20 +112,29 @@ class BusinessController extends Controller
         // Ensure only the owner or an admin can update
         $this->authorize('update', $business);
 
-        // Validate input
+        // Validate input with error messages
         $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'address' => 'required|string',
-            'contact' => 'nullable|string',
-            'categories' => 'required|array',
+            'description' => 'required|string', // Now required
+            'address' => 'required|string|max:255',
+            'contact' => 'required|string|max:255', // Now required
+            'categories' => 'required|array|min:1', // At least one category required
             'categories.*' => 'exists:categories,id',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
+        ], [
+            'name.required' => 'Business name is required.',
+            'description.required' => 'Description is required.',
+            'address.required' => 'Address is required.',
+            'contact.required' => 'Contact information is required.',
+            'categories.required' => 'Please select at least one category.',
+            'categories.*.exists' => 'Invalid category selection.',
+            'photo.image' => 'The uploaded file must be an image.',
+            'photo.mimes' => 'Allowed image formats: jpeg, png, jpg, gif.',
+            'photo.max' => 'Image size must not exceed 4MB.',
         ]);
 
         // Handle photo upload
         if ($request->hasFile('photo')) {
-            // Store new photo
             $photoPath = $request->file('photo')->store('businesses', 'public');
 
             // Delete old photo if it exists
@@ -122,7 +142,6 @@ class BusinessController extends Controller
                 Storage::disk('public')->delete($business->photo);
             }
 
-            // Save new photo path
             $business->photo = $photoPath;
         }
 
@@ -132,7 +151,7 @@ class BusinessController extends Controller
             'description' => $request->description,
             'address' => $request->address,
             'contact' => $request->contact,
-            'photo' => $business->photo, // Ensure this gets updated
+            'photo' => $business->photo,
         ]);
 
         // Sync categories
@@ -140,6 +159,7 @@ class BusinessController extends Controller
 
         return redirect()->route('businesses.show', $business)->with('success', 'Business updated successfully!');
     }
+
 
 
 
@@ -157,4 +177,6 @@ class BusinessController extends Controller
         $businesses = auth()->user()->businesses()->paginate(10);
         return view('businesses.user-index', compact('businesses'));
     }
+
+
 }

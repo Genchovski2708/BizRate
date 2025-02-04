@@ -13,23 +13,28 @@
                     <label class="block text-gray-700 font-medium mb-2">Business Name</label>
                     <input type="text" name="name" value="{{ old('name', $business->name) }}" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    @error('name') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
                     <label class="block text-gray-700 font-medium mb-2">Description</label>
-                    <textarea name="description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ old('description', $business->description) }}</textarea>
+                    <textarea name="description" rows="4"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ old('description', $business->description) }}</textarea>
+                    @error('description') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
                     <label class="block text-gray-700 font-medium mb-2">Address</label>
                     <input type="text" name="address" value="{{ old('address', $business->address) }}" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    @error('address') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
                     <label class="block text-gray-700 font-medium mb-2">Contact</label>
-                    <input type="text" name="contact" value="{{ old('contact', $business->contact) }}"
+                    <input type="text" name="contact" value="{{ old('contact', $business->contact) }}" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    @error('contact') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
@@ -42,17 +47,19 @@
                             </option>
                         @endforeach
                     </select>
+                    @error('categories') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
                     <label class="block text-gray-700 font-medium mb-2">Photo</label>
-                    <input type="file" name="photo" id="photoInput" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <input type="file" name="photo" id="photoInput"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    @error('photo') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
 
                     <!-- Image preview -->
                     <img id="photoPreview"
                          src="{{ $business->photo ? asset('storage/' . $business->photo) : '' }}"
                          class="w-full h-48 object-cover mt-4 {{ $business->photo ? '' : 'hidden' }}">
-
                 </div>
 
                 <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">

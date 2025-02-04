@@ -124,5 +124,10 @@ class CommentController extends Controller
         $comments = Comment::with('user', 'business', 'replies')->latest()->paginate(10);
         return view('comments.index', compact('comments'));
     }
+    public function myComments()
+    {
+        $comments = auth()->user()->comments()->with('business')->paginate(12);
+        return view('comments.my-comments', compact('comments'));
+    }
 
 }

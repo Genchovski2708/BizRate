@@ -48,6 +48,12 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::put('/comments/{comment}/json', [CommentController::class, 'updateJson'])->name('comments.updateJson');
     Route::delete('/comments/{comment}/json', [CommentController::class, 'destroyJson'])->name('comments.destroyJson');
+    Route::get('/my-comments', [CommentController::class, 'myComments'])->name('comments.my');
+
+    Route::get('/my-reviews', [ReviewController::class, 'myReviews'])->name('reviews.my');
+    Route::put('/reviews/{review}/json', [ReviewController::class, 'updateJson'])->name('reviews.update.json');
+
+
 
 });
 

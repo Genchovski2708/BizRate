@@ -10,7 +10,9 @@ class WelcomeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Business::with(['categories', 'reviews'])->withAvg('reviews', 'rating');
+        $query = Business::with(['categories', 'reviews'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews'); // Always load review count
 
         // Filter by multiple categories
         if ($request->filled('categories')) {
@@ -18,14 +20,12 @@ class WelcomeController extends Controller
             $matchType = $request->input('match_type', 'or'); // Default: OR search
 
             if ($matchType === 'and') {
-                // AND search: Only businesses that have ALL selected categories
                 foreach ($categoryIds as $categoryId) {
                     $query->whereHas('categories', function ($q) use ($categoryId) {
                         $q->where('categories.id', $categoryId);
                     });
                 }
             } else {
-                // OR search: Businesses that have ANY of the selected categories
                 $query->whereHas('categories', function ($q) use ($categoryIds) {
                     $q->whereIn('categories.id', $categoryIds);
                 });
@@ -49,7 +49,7 @@ class WelcomeController extends Controller
         if ($sort === 'rating') {
             $query->orderBy('average_rating', $direction);
         } elseif ($sort === 'reviews_count') {
-            $query->withCount('reviews')->orderBy('reviews_count', $direction);
+            $query->orderBy('reviews_count', $direction);
         } else {
             $query->orderBy($sort, $direction);
         }
@@ -68,16 +68,22 @@ class WelcomeController extends Controller
 
 
 
-    public function show(Business $business)
+
+    public function show(Business $business, Request $request)
     {
-        // Load the business with reviews, user information, and categories
+        // Load the business with relationships
         $business->load(['reviews.user', 'categories', 'comments.user', 'comments.replies.user']);
 
-        // Fetch reviews and comments separately if needed for easy access in the view
-        $reviews = $business->reviews;
-        $comments = $business->comments;
+        // Get sorting order from request (default: newest first)
+        $sortOrder = $request->query('sort', 'desc');
+        $activeTab = $request->query('tab', 'reviews'); // Default to 'reviews'
 
-        return view('businesses.show', compact('business', 'reviews', 'comments'));
+        // Fetch sorted reviews and comments
+        $reviews = $business->reviews()->orderBy('created_at', $sortOrder)->get();
+        $comments = $business->comments()->orderBy('created_at', $sortOrder)->get();
+
+        return view('businesses.show', compact('business', 'reviews', 'comments', 'sortOrder', 'activeTab'));
     }
+
 
 }

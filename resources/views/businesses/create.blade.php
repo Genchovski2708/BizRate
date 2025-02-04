@@ -6,28 +6,33 @@
             <h1 class="text-2xl font-bold mb-6">Create Business</h1>
             <form action="{{ route('businesses.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+
                 <div class="mb-4">
                     <label for="name" class="block text-gray-700 font-medium mb-2">Business Name</label>
-                    <input type="text" name="name" id="name" required
+                    <input type="text" name="name" id="name" value="{{ old('name') }}" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error('name') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
                     <label for="description" class="block text-gray-700 font-medium mb-2">Description</label>
                     <textarea name="description" id="description"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('description') }}</textarea>
+                    @error('description') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
                     <label for="address" class="block text-gray-700 font-medium mb-2">Address</label>
-                    <input type="text" name="address" id="address" required
+                    <input type="text" name="address" id="address" value="{{ old('address') }}" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error('address') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
                     <label for="contact" class="block text-gray-700 font-medium mb-2">Contact</label>
-                    <input type="text" name="contact" id="contact"
+                    <input type="text" name="contact" id="contact" value="{{ old('contact') }}" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error('contact') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">
@@ -35,17 +40,20 @@
                     <select name="categories[]" id="categories" multiple required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" {{ in_array($category->id, old('categories', [])) ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
                         @endforeach
                     </select>
                     <p class="text-gray-500 text-sm mt-1">Hold CTRL (Windows) or Command (Mac) to select multiple categories.</p>
+                    @error('categories') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
-
 
                 <div class="mb-4">
                     <label for="photo" class="block text-gray-700 font-medium mb-2">Photo</label>
                     <input type="file" name="photo" id="photo"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error('photo') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mt-6">

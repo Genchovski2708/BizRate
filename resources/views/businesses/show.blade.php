@@ -70,114 +70,144 @@
                             </button>
                         </div>
                     </div>
+                        <div class="flex justify-end mb-4 items-center">
+                            <label for="sortOrder" class="mr-2 text-gray-700 font-medium">Sort by:</label>
+                            <div class="relative">
+                                <select id="sortOrder"
+                                        class="appearance-none border rounded-md px-3 py-2 pr-8 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="desc" {{ $sortOrder === 'desc' ? 'selected' : '' }}>Newest</option>
+                                    <option value="asc" {{ $sortOrder === 'asc' ? 'selected' : '' }}>Oldest</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <!-- Reviews Content -->
-                    <div id="reviewsContent">
+                        <!-- Reviews Content -->
+                        <div id="reviewsContent">
+                            @auth
+                                @php
+                                    $existingReview = $business->reviews->where('user_id', auth()->id())->first();
+                                @endphp
+
+                                @if(auth()->id() !== $business->user_id)
+                                    @if(!$existingReview)
+                                        <button id="toggleReviewForm" onclick="toggleReviewForm()" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 mb-4">
+                                            Write a Review
+                                        </button>
+                                    @endif
+
+                                        <form id="reviewForm" action="{{ $existingReview ? route('reviews.update', $existingReview->id) : route('reviews.store') }}"
+                                              method="POST" class="mb-6 bg-gray-50 p-6 rounded-lg hidden">
+                                            @csrf
+                                            @if($existingReview)
+                                                @method('PUT')
+                                            @endif
+                                            <input type="hidden" name="business_id" value="{{ $business->id }}">
+
+                                            <div class="mb-4">
+                                                <label class="block text-gray-700 mb-2">Rating</label>
+                                                <select name="rating" class="rounded-md w-full" required>
+                                                    @foreach(range(5, 1) as $rating)
+                                                        <option value="{{ $rating }}" {{ ($existingReview && $existingReview->rating == $rating) ? 'selected' : '' }}>
+                                                            {{ $rating }} Stars
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="block text-gray-700 mb-2">Comment</label>
+                                                <textarea name="comment" rows="4" class="rounded-md w-full" required>{{ $existingReview->comment ?? '' }}</textarea>
+                                            </div>
+
+                                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                                {{ $existingReview ? 'Update Review' : 'Submit Review' }}
+                                            </button>
+                                        </form>
+
+                                @else
+                                    <p class="text-gray-600 mb-6">You cannot review your own business.</p>
+                                @endif
+                            @else
+                                <div class="mb-6 p-4 bg-gray-100 rounded-md">
+                                    <p>Please <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800">login</a> to leave a review.</p>
+                                </div>
+                            @endauth
+
+                            <div class="space-y-6">
+                                @foreach($business->reviews->sortByDesc('created_at') as $review)
+                                    <div class="border-b pb-6">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center">
+                                                <div class="text-yellow-400 mr-2">
+                                                    {{ $review->rating }} ★
+                                                </div>
+                                                <div class="font-semibold">
+                                                    {{ $review->user->name }}
+                                                </div>
+                                            </div>
+                                            <div class="text-gray-500 text-sm">
+                                                {{ $review->created_at->diffForHumans() }}
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-600">{{ $review->comment }}</p>
+
+                                        @auth
+                                            @if(auth()->id() == $review->user_id || auth()->user()->isAdmin())
+                                                <div class="mt-4 flex gap-4">
+                                                    <button onclick="editReview('{{ $review->id }}')"
+                                                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+
+                                                    <form action="{{ route('reviews.destroy', $review->id) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @endif
+                                        @endauth
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+
+                        <!-- Comments Content -->
+
+
+                        <div id="commentsContent" class="hidden">
                         @auth
-                            @php
-                                $existingReview = $business->reviews->where('user_id', auth()->id())->first();
-                            @endphp
+                                <!-- Add Comment Button (Only Visible When Form is Hidden) -->
+                                <button id="toggleCommentForm" onclick="toggleCommentForm()"
+                                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 mb-4">
+                                    Add Comment
+                                </button>
 
-                            @if(auth()->id() !== $business->user_id)
-                                <form action="{{ route('reviews.store') }}" method="POST" class="mb-6 bg-gray-50 p-6 rounded-lg">
+                                <!-- Hidden Comment Form -->
+                                <form id="commentForm" onsubmit="submitComment(event, {{ $business->id }})"
+                                      class="mb-6 bg-gray-50 p-6 rounded-lg hidden">
                                     @csrf
-                                    <input type="hidden" name="business_id" value="{{ $business->id }}">
-
                                     <div class="mb-4">
-                                        <label class="block text-gray-700 mb-2">Rating</label>
-                                        <select name="rating" class="rounded-md w-full" required>
-                                            @foreach(range(5, 1) as $rating)
-                                                <option value="{{ $rating }}" {{ ($existingReview && $existingReview->rating == $rating) ? 'selected' : '' }}>
-                                                    {{ $rating }} Stars
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <label class="block text-gray-700 mb-2">Your Comment</label>
+                                        <textarea name="content" rows="4" class="rounded-md w-full" required></textarea>
                                     </div>
 
-                                    <div class="mb-4">
-                                        <label class="block text-gray-700 mb-2">Comment</label>
-                                        <textarea name="comment" rows="4" class="rounded-md w-full" required>{{ $existingReview->comment ?? '' }}</textarea>
-                                    </div>
-
+                                    <!-- Buttons Container -->
                                     <div class="flex gap-4">
                                         <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                                            {{ $existingReview ? 'Update Review' : 'Submit Review' }}
+                                            Post Comment
                                         </button>
 
-                                        @if($existingReview)
-                                            <form action="{{ route('reviews.destroy', $existingReview->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        @endif
+                                        <!-- Cancel Button (Only Visible When Form is Shown) -->
+                                        <button type="button" onclick="toggleCommentForm()"
+                                                class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                                            Cancel
+                                        </button>
                                     </div>
                                 </form>
-                            @else
-                                <p class="text-gray-600 mb-6">You cannot review your own business.</p>
-                            @endif
-                        @else
-                            <div class="mb-6 p-4 bg-gray-100 rounded-md">
-                                <p>Please <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800">login</a> to leave a review.</p>
-                            </div>
-                        @endauth
-
-                        <div class="space-y-6">
-                            @foreach($business->reviews->sortByDesc('created_at') as $review)
-                                <div class="border-b pb-6">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center">
-                                            <div class="text-yellow-400 mr-2">
-                                                {{ $review->rating }} ★
-                                            </div>
-                                            <div class="font-semibold">
-                                                {{ $review->user->name }}
-                                            </div>
-                                        </div>
-                                        <div class="text-gray-500 text-sm">
-                                            {{ $review->created_at->diffForHumans() }}
-                                        </div>
-                                    </div>
-                                    <p class="text-gray-600">{{ $review->comment }}</p>
-
-                                    @auth
-                                        @if(auth()->id() == $review->user_id || auth()->user()->isAdmin())
-                                            <div class="mt-4 flex gap-4">
-                                                <a href="{{ route('reviews.edit', $review->id) }}"
-                                                   class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                                                    Edit
-                                                </a>
-
-                                                <form action="{{ route('reviews.destroy', $review->id) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
-                                                        Delete
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        @endif
-                                    @endauth
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Comments Content -->
-                    <div id="commentsContent" class="hidden">
-                        @auth
-                            <form onsubmit="submitComment(event, {{ $business->id }})" class="mb-6 bg-gray-50 p-6 rounded-lg">
-                                @csrf
-                                <div class="mb-4">
-                                    <label class="block text-gray-700 mb-2">Your Comment</label>
-                                    <textarea name="content" rows="4" class="rounded-md w-full" required></textarea>
-                                </div>
-                                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                                    Post Comment
-                                </button>
-                            </form>
 
                         @else
                             <div class="mb-6 p-4 bg-gray-100 rounded-md">
@@ -282,7 +312,7 @@
                                         <!-- Reply Visibility Toggle Button -->
                                         @if($comment->replies->count() > 0)
                                             <button type="button" class="text-blue-500 mt-4" onclick="toggleReplies({{ $comment->id }})">
-                                                <i class="fas fa-arrow-down"></i> Hide Replies
+                                                <i class="fas fa-arrow-down"></i> Show Replies
                                             </button>
                                         @endif
 
@@ -386,6 +416,26 @@
                 reviewsTab.classList.add('border-transparent', 'text-gray-500');
             }
         }
+        document.addEventListener("DOMContentLoaded", function () {
+            const sortOrderDropdown = document.getElementById("sortOrder");
+
+            sortOrderDropdown.addEventListener("change", function () {
+                const selectedSort = sortOrderDropdown.value;
+                const activeTab = document.getElementById("reviewsContent").classList.contains("hidden") ? "comments" : "reviews";
+
+                const url = new URL(window.location.href);
+                url.searchParams.set("sort", selectedSort);
+                url.searchParams.set("tab", activeTab);
+
+                window.location.href = url.toString(); // Reload with sorting & tab persistence
+            });
+
+            // Restore the correct tab after reload
+            const activeTab = new URLSearchParams(window.location.search).get("tab");
+            if (activeTab) {
+                switchTab(activeTab); // Call your existing switchTab function to restore the correct tab
+            }
+        });
     </script>
 
     <script>
@@ -451,7 +501,6 @@
 
         // Optional: Add a notification function
         function showNotification(message, type = 'success') {
-            // You can implement this based on your preferred notification system
             // For example, using a toast notification library or a simple DIV
             const notificationDiv = document.createElement('div');
             notificationDiv.className = `fixed top-4 right-4 p-4 rounded-md ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
@@ -611,11 +660,7 @@
                 showNotification('Error posting reply', 'error');
             }
         }
-        // Append a new comment to the list
-        // Append a new comment to the list
-        // Append a new comment to the list
         function appendComment(comment) {
-            // Target the container where comments are listed
             const commentList = document.querySelector('#commentsContent .space-y-6');
 
             if (!commentList) {
@@ -623,12 +668,10 @@
                 return;
             }
 
-            // Create the new comment element
+            // Create the comment element
             const commentDiv = document.createElement('div');
             commentDiv.className = 'border-b pb-6';
             commentDiv.id = `comment-${comment.id}`;
-
-            // Generate the HTML for the new comment
             commentDiv.innerHTML = `
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-3">
@@ -641,27 +684,47 @@
                 ${new Date(comment.created_at).toLocaleString()}
             </div>
         </div>
+
         <div class="text-gray-700 comment-content" id="content-${comment.id}">
             ${comment.content}
         </div>
- <div class="mt-4 flex gap-3">
-                                                    <button type="button"
-                                                            class="text-blue-500 hover:text-blue-600 transition duration-200"
-                                                            onclick="editComment({{ $comment->id }})">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
 
-                                                    <button type="button"
-                                                            class="text-red-500 hover:text-red-600 transition duration-200"
-                                                            onclick="deleteComment({{ $comment->id }})">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
+        <form onsubmit="updateComment(event, ${comment.id})"
+              class="edit-form hidden mt-4 space-y-4"
+              id="edit-form-${comment.id}">
+            <input type="hidden" name="_token" value="${document.querySelector('meta[name=csrf-token]').content}">
+            <div>
+                <label class="block text-gray-700 mb-2">Edit your Comment</label>
+                <textarea name="content" rows="4" class="w-full rounded-md border-gray-300" required>${comment.content}</textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Update</button>
+                <button type="button" onclick="cancelEdit(${comment.id})" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Cancel</button>
+            </div>
+        </form>
+
+        <div class="mt-4 flex gap-3">
+            <button type="button" class="text-blue-500 hover:text-blue-600 transition duration-200" onclick="editComment(${comment.id})">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" class="text-red-500 hover:text-red-600 transition duration-200" onclick="deleteComment(${comment.id})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
     `;
 
-            // Append the new comment to the top of the list
-            commentList.prepend(commentDiv); // Use `prepend` to add the comment at the top
+            // Check current sorting order
+            const sortOrder = document.getElementById('sort-comments')?.value || 'desc';
+
+            if (sortOrder === 'desc') {
+                // Newest first: Add to top
+                commentList.prepend(commentDiv);
+            } else {
+                // Oldest first: Add to bottom
+                commentList.appendChild(commentDiv);
+            }
         }
+
 
         // Append a new reply to the list
         function appendReply(reply, parentId) {
@@ -689,6 +752,34 @@
     `;
 
             repliesDiv.appendChild(replyDiv);
+        }
+
+        function changeSortOrder() {
+            const sortOrder = document.getElementById('sort-comments').value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', sortOrder);
+            window.location.href = url.toString();
+        }
+        function toggleReviewForm() {
+            const form = document.getElementById('reviewForm');
+            form.classList.toggle('hidden');
+        }
+
+        function editReview(reviewId) {
+            const form = document.getElementById('reviewForm');
+            form.classList.remove('hidden');
+        }
+        function toggleCommentForm() {
+            const form = document.getElementById('commentForm');
+            const addButton = document.getElementById('toggleCommentForm');
+
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                addButton.classList.add('hidden'); // Hide the "Add Comment" button
+            } else {
+                form.classList.add('hidden');
+                addButton.classList.remove('hidden'); // Show the "Add Comment" button again
+            }
         }
     </script>
 
