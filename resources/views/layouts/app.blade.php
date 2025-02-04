@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <title>{{ config('app.name', 'BizRate') }}</title>
 
     <!-- Fonts -->
@@ -16,7 +16,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased">
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-screen bg-amber-100">
     @include('layouts.navigation')
 
     <!-- Flash Messages -->
@@ -29,7 +29,7 @@
     @endif
 
     <!-- Page Content -->
-    <main class="py-4">
+    <main class="py-4 bg-amber-100">
         {{ $slot ?? '' }}
         @yield('content')
     </main>
