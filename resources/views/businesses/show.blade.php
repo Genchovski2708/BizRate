@@ -8,7 +8,7 @@
                     @if($business->photo)
                         <img src="{{ asset('storage/' . $business->photo) }}"
                              alt="{{ $business->name }}"
-                             class="w-full h-64 object-cover rounded-lg mb-6">
+                             class="w-fit h-fit object-cover rounded-lg mb-6">
                     @endif
 
                     <h1 class="text-3xl font-semibold mb-4">{{ $business->name }}</h1>

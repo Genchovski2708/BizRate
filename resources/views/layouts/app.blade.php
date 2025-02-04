@@ -16,7 +16,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased">
-<div class="min-h-screen bg-amber-100">
+<div class="min-h-screen bg-gray-100">
     @include('layouts.navigation')
 
     <!-- Flash Messages -->
@@ -29,11 +29,13 @@
     @endif
 
     <!-- Page Content -->
-    <main class="py-4 bg-amber-100">
+    <main class="py-4 bg-gray-100">
         {{ $slot ?? '' }}
         @yield('content')
     </main>
+
 </div>
+@include('layouts.footer')
 
 @stack('scripts')
 </body>
