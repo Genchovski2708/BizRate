@@ -427,19 +427,17 @@
                 url.searchParams.set("sort", selectedSort);
                 url.searchParams.set("tab", activeTab);
 
-                window.location.href = url.toString(); // Reload with sorting & tab persistence
+                window.location.href = url.toString();
             });
 
-            // Restore the correct tab after reload
             const activeTab = new URLSearchParams(window.location.search).get("tab");
             if (activeTab) {
-                switchTab(activeTab); // Call your existing switchTab function to restore the correct tab
+                switchTab(activeTab);
             }
         });
     </script>
 
     <script>
-        // Show the edit form
         function editComment(commentId) {
             const contentDiv = document.getElementById('content-' + commentId);
             const editForm = document.getElementById('edit-form-' + commentId);
@@ -448,7 +446,6 @@
             editForm.classList.remove('hidden');
         }
 
-        // Cancel the edit and hide the form
         function cancelEdit(commentId) {
             const contentDiv = document.getElementById('content-' + commentId);
             const editForm = document.getElementById('edit-form-' + commentId);
@@ -457,7 +454,6 @@
             editForm.classList.add('hidden');
         }
 
-        // Update comment using fetch
         async function updateComment(event, commentId) {
             event.preventDefault();
 
@@ -483,14 +479,11 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update the content
                     const contentDiv = document.getElementById('content-' + commentId);
                     contentDiv.textContent = content;
 
-                    // Hide the form and show the updated content
                     cancelEdit(commentId);
 
-                    // Optional: Show a success message
                     showNotification('Comment updated successfully', 'success');
                 }
             } catch (error) {
@@ -499,9 +492,7 @@
             }
         }
 
-        // Optional: Add a notification function
         function showNotification(message, type = 'success') {
-            // For example, using a toast notification library or a simple DIV
             const notificationDiv = document.createElement('div');
             notificationDiv.className = `fixed top-4 right-4 p-4 rounded-md ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
             notificationDiv.textContent = message;
@@ -536,13 +527,12 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Remove the comment from the DOM
+
                     const commentDiv = document.getElementById('comment-' + commentId);
                     if (commentDiv) {
                         commentDiv.remove();
                     }
 
-                    // Optional: Show a success message
                     showNotification('Comment deleted successfully', 'success');
                 }
             } catch (error) {
@@ -550,27 +540,23 @@
                 showNotification('Error deleting comment', 'error');
             }
         }
-    </script>
-    <script>
-        // Toggle visibility of the reply form
+
         function toggleReplyForm(commentId) {
             const replyForm = document.getElementById('reply-form-' + commentId);
             replyForm.classList.toggle('hidden');
         }
 
-        // Cancel the reply form
         function cancelReply(commentId) {
             const replyForm = document.getElementById('reply-form-' + commentId);
             replyForm.classList.add('hidden');
         }
 
-        // Toggle replies visibility (Hide/Show)
         function toggleReplies(commentId) {
             const repliesContainer = document.getElementById('replies-' + commentId);
             const button = repliesContainer.previousElementSibling;
             repliesContainer.classList.toggle('hidden');
 
-            // Toggle the button text
+
             if (repliesContainer.classList.contains('hidden')) {
                 button.innerHTML = '<i class="fas fa-arrow-down"></i> Show replies';
             } else {
@@ -578,7 +564,6 @@
             }
         }
 
-        // Handle main comment form submission
         async function submitComment(event, businessId) {
             event.preventDefault();
 
@@ -602,16 +587,13 @@
                 }
 
                 const data = await response.json();
-                console.log('Response data:', data); // Debugging
+                console.log('Response data:', data);
 
                 if (data.success) {
-                    // Clear the form
                     form.reset();
 
-                    // Optional: Show a success message
                     showNotification('Comment posted successfully', 'success');
 
-                    // Append the new comment to the DOM
                     appendComment(data.comment);
                 }
             } catch (error) {
@@ -619,7 +601,6 @@
                 showNotification('Error posting comment', 'error');
             }
         }
-        // Handle reply form submission
         async function submitReply(event, businessId, parentId) {
             event.preventDefault();
 
@@ -645,14 +626,10 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Clear the form
                     form.reset();
 
-                    // Optional: Show a success message
                     showNotification('Reply posted successfully', 'success');
 
-                    // Optional: Dynamically insert the new reply into the DOM
-                    // You can create a function to append the new reply to the list
                     appendReply(data.comment, parentId);
                 }
             } catch (error) {
@@ -668,7 +645,6 @@
                 return;
             }
 
-            // Create the comment element
             const commentDiv = document.createElement('div');
             commentDiv.className = 'border-b pb-6';
             commentDiv.id = `comment-${comment.id}`;
@@ -713,20 +689,16 @@
         </div>
     `;
 
-            // Check current sorting order
             const sortOrder = document.getElementById('sort-comments')?.value || 'desc';
 
             if (sortOrder === 'desc') {
-                // Newest first: Add to top
                 commentList.prepend(commentDiv);
             } else {
-                // Oldest first: Add to bottom
                 commentList.appendChild(commentDiv);
             }
         }
 
 
-        // Append a new reply to the list
         function appendReply(reply, parentId) {
             const repliesDiv = document.getElementById(`replies-${parentId}`);
 
@@ -775,10 +747,10 @@
 
             if (form.classList.contains('hidden')) {
                 form.classList.remove('hidden');
-                addButton.classList.add('hidden'); // Hide the "Add Comment" button
+                addButton.classList.add('hidden');
             } else {
                 form.classList.add('hidden');
-                addButton.classList.remove('hidden'); // Show the "Add Comment" button again
+                addButton.classList.remove('hidden');
             }
         }
     </script>

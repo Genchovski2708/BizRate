@@ -11,7 +11,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\DashboardController;
 
-// Public routes
+
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 Route::get('/businesses/create', [BusinessController::class, 'create'])->name('businesses.create')->middleware('auth');
 
@@ -20,7 +20,7 @@ Route::get('/businesses/{business}', [WelcomeController::class, 'show'])->name('
 
 
 
-// Routes for logged-in users
+
 Route::middleware(['auth'])->group(function () {
     Route::resource('businesses', BusinessController::class)->except(['index', 'show']);
     Route::get('/user/businesses', [BusinessController::class, 'userBusinesses'])->name('user.businesses');
@@ -57,7 +57,6 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-// Admin-only routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/comments', [CommentController::class, 'index'])->name('comments.index');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

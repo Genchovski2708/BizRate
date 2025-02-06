@@ -13,52 +13,44 @@ class CommentController extends Controller
 
     public function store(Request $request, Business $business)
     {
-        // Validate the incoming request
         $validated = $request->validate([
             'content' => 'required|string|max:1000',
-            'parent_id' => 'nullable|exists:comments,id', // Ensure parent comment exists
+            'parent_id' => 'nullable|exists:comments,id',
         ]);
 
-        // Create a new comment (either regular or reply)
         $comment = new Comment([
             'content' => $validated['content'],
             'user_id' => auth()->id(),
             'business_id' => $business->id,
-            'parent_id' => $validated['parent_id'] ?? null, // Only add parent_id if it's a reply
+            'parent_id' => $validated['parent_id'] ?? null,
         ]);
 
-        // Save the comment
         $comment->save();
 
         return back()->with('success', 'Comment added successfully.');
     }
     public function storeJson(Request $request, Business $business)
     {
-        // Validate the incoming request
         $validated = $request->validate([
             'content' => 'required|string|max:1000',
-            'parent_id' => 'nullable|exists:comments,id', // Ensure parent comment exists
+            'parent_id' => 'nullable|exists:comments,id',
         ]);
 
-        // Create a new comment (either regular or reply)
         $comment = new Comment([
             'content' => $validated['content'],
             'user_id' => auth()->id(),
             'business_id' => $business->id,
-            'parent_id' => $validated['parent_id'] ?? null, // Only add parent_id if it's a reply
+            'parent_id' => $validated['parent_id'] ?? null,
         ]);
 
-        // Save the comment
         $comment->save();
 
-        // Load the user relationship
         $comment->load('user');
 
-        // Return JSON response
         return response()->json([
             'success' => true,
             'message' => 'Comment added successfully.',
-            'comment' => $comment, // Return the created comment for dynamic DOM insertion
+            'comment' => $comment,
         ]);
     }
 

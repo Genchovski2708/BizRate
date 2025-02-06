@@ -22,7 +22,7 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        // Validate the form inputs
+
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -30,8 +30,7 @@ class UserController extends Controller
             'role' => 'required|in:user,admin',
         ]);
 
-        // Hash the password before storing it
-        $validatedData['password'] = bcrypt($validatedData['password']);  // bcrypt encryption
+        $validatedData['password'] = bcrypt($validatedData['password']);
 
 
 
